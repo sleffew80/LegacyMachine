@@ -1,0 +1,13 @@
+ACTION GAME,_libretro.dll,Action Game [U].rom,1
+ARCADE GAME,_libretro.dll,Arcade Game [U].rom,1
+ADVENTURE GAME,_libretro.dll,Arcade Game [U].rom,1
+RPG,_libretro.dll,RPG [U].rom,1
+JRPG,_libretro.dll,JRPG [J].rom,1
+SPORTS GAME,_libretro.dll,Sports Game [U].rom,2
+OTHER GAME,_libretro.dll,Other Game [JUE].rom,2
+SUPER OTHER GAME,_libretro.dll,Super Other Game [JU].rom,2
+SUPER OTHER GAME 2,_libretro.dll,Super Other Game 2 [U].rom,2
+SUPER OTHER GAME 3,_libretro.dll,Super Other Game 3 [U].rom,2
+S.O.V.G.,_libretro.dll,Some Other Video Game [U].rom,1
+S.O.V.G. 2,_libretro.dll,Some Other Video Game 2 [U].rom,2
+S.O.V.G. 3,_libretro.dll,Some Other Video Game 3 [U].rom,2

@@ -11,48 +11,39 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 * */
 
+#ifndef _SDL2_COMMON_H_
+#define _SDL2_COMMON_H_
+
 /**************************************************************************************************
  * Includes
  *************************************************************************************************/
-#include "InputDriver.h"
-#include "../MainEngine.h"
+#include <SDL.h>
+
+#include "../Video/Filters/SDL2_CRTFilter.h"
 
 /**************************************************************************************************
- * InputDriver Context Array
+ * SDL2 Common Types/Structures
  *************************************************************************************************/
 
-const InputDriver* input_drivers[] = {
-#ifdef HAVE_SDL2
-	&sdl2_input_driver,
-#endif  
-	NULL
-};
+/* Structure for storing additional video info related specifically to SDL2 video rendering. */
+typedef struct SDL2_VideoInfo
+{
+    SDL_Window*     window;
+    SDL_Renderer*   renderer;
+    SDL_Texture*    framebuffer;
+    SDL_Rect        viewport;
+    SDL2_CRTHandler crt;
+}
+SDL2_VideoInfo;
 
 /**************************************************************************************************
- * InputDriver Initialization
+ * SDL2 Common Prototypes
  *************************************************************************************************/
 
-/* Initialize the input driver. */
-InputDriver* InitializeInputDriver(void)
-{
-	return (InputDriver*)input_drivers[0];
-}
+RETRO_BEGIN_DECLS
 
-/* Get the state of a given player's joypad. */
-JoypadInputState* GetJoypadInputState(LMC_Player player)
-{
-	return &legacy_machine->input->joypad->state[player];
-}
+SDL2_VideoInfo* SDL2_GetVideoInfoContext(void);
 
-/* Marks input as pressed. */
-void SetInput(LMC_Player player, LMC_Input input)
-{
-	legacy_machine->input->joypad->state->inputs |= (1 << input);
-	legacy_machine->input->last_input = input;
-}
+RETRO_END_DECLS
 
-/* Marks input as unpressed. */
-void ClearInput(LMC_Player player, LMC_Input input)
-{
-	legacy_machine->input->joypad->state->inputs &= ~(1 << input);
-}
+#endif

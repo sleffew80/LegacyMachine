@@ -18,37 +18,7 @@
  * Includes
  *************************************************************************************************/
 #include "LegacyMachine.h"
-
-/**************************************************************************************************
- * Definitions
- *************************************************************************************************/
-#define MAX_PLAYERS		   8	/* Number of unique players. */
-#define MAX_INPUTS		  32	/* Number of inputs per player. */
-#define MAX_HATS		   2	/* Number of hats per player. */
-#define MAX_AXES		   8	/* Number of axes per player. */
-#define INPUT_MASK	(MAX_INPUTS - 1)
-
-/**************************************************************************************************
- * JoypadInputState Structure
- *************************************************************************************************/
-typedef struct JoypadInputState
-{
-	uint32_t key_map[MAX_INPUTS];
-	uint32_t inputs;
-	int32_t product;
-	int32_t vendor;
-	uint8_t button_map[MAX_INPUTS];
-	uint8_t hat_map[MAX_HATS][MAX_HAT_INPUTS];
-	uint8_t axis_map[MAX_AXES][MAX_AXIS_INPUTS];
-	uint8_t buttons;
-	uint8_t axes;
-	uint8_t hats;
-	uint8_t identifier;
-	const char* name;
-	bool keyboard_enabled;
-	bool connected;
-}
-JoypadInputState;
+#include "../Common/Common.h"
 
 /**************************************************************************************************
  * JoypadDriver Structure
@@ -107,6 +77,7 @@ extern InputDriver sdl2_input_driver;
 RETRO_BEGIN_DECLS
 
 InputDriver* InitializeInputDriver(void);
+JoypadInputState* GetJoypadInputState(LMC_Player player);
 void SetInput(LMC_Player player, LMC_Input input);
 void ClearInput(LMC_Player player, LMC_Input input);
 

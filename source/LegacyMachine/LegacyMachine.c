@@ -27,6 +27,7 @@
 #include "LegacyMachine.h"
 #include "MainEngine.h"
 #include "Logging.h"
+#include "Common/Common.h"
 
 /**************************************************************************************************
  * Definitions
@@ -254,8 +255,8 @@ LMC_Engine LMC_Init(void)
 		LMC_SetLastError(LMC_ERR_TILENGINE);
 		return NULL;
 	}
-	context->menu->framebuffer.pitch = (((max_width * 32) >> 3) + 3) & ~0x03;
-	context->menu->framebuffer.data = malloc(context->menu->framebuffer.pitch * max_height);
+	context->menu->frame.pitch = (((max_width * 32) >> 3) + 3) & ~0x03;
+	context->menu->frame.data = malloc(context->menu->frame.pitch * max_height);
 	context->menu->available = true;
 #endif
 	context->system = GetSystemManagerContext();
@@ -301,8 +302,11 @@ LMC_Engine LMC_Init(void)
 	/* Additional Tilengine initialization. */
 	TLN_SetTargetFps((int)fps);
 	TLN_SetLoadPath(context->settings->asset_directory);
-	TLN_SetRenderTarget(context->menu->framebuffer.data, context->menu->framebuffer.pitch);
+	TLN_SetRenderTarget(context->menu->frame.data, context->menu->frame.pitch);
 #endif
+
+	VideoInfo* video_info = GetVideoInfo();
+	video_info->frame = calloc(sizeof(FrameInfo), 1);
 
 #ifdef _DEBUG
 	LMC_SetLogLevel(LMC_LOG_ERRORS);
@@ -393,17 +397,19 @@ bool LMC_DeleteContext(LMC_Engine context)
 		return false;
 	}
 
-	/* TODO: Free necessary "engine" members. */
+	/* Free "engine" members. */
 	if (context->system->current_core)
 		free(context->system->current_core);
 #ifdef HAVE_MENU
 	if (context->menu->tile_engine)
 		TLN_Deinit();
-	if (context->menu->framebuffer.data)
-		free(context->menu->framebuffer.data);
+	if (context->menu->frame.data)
+		free(context->menu->frame.data);
 	if (context->menu)
 		context->menu = NULL;
 #endif
+	if (context->video->info.frame)
+		free(context->video->info.frame);
 	if (context->system)
 		context->system = NULL;
 	if (context->input)
@@ -455,7 +461,7 @@ uint32_t LMC_GetVersion(void)
 uint8_t* LMC_GetMenuRenderTarget(void)
 {
 	LMC_SetLastError(LMC_ERR_OK);
-	return legacy_machine->menu->framebuffer.data;
+	return legacy_machine->menu->frame.data;
 }
 
 /*!
@@ -469,7 +475,7 @@ uint8_t* LMC_GetMenuRenderTarget(void)
 int LMC_GetMenuRenderTargetPitch(void)
 {
 	LMC_SetLastError(LMC_ERR_OK);
-	return legacy_machine->menu->framebuffer.pitch;
+	return legacy_machine->menu->frame.pitch;
 }
 
 /*!
@@ -1437,10 +1443,10 @@ void LMC_UpdateFrame(int frame)
 		}
 
 		/* Draw a single frame from the frontend. */
-		legacy_machine->video->cb_refresh(NULL,//legacy_machine->menu->framebuffer.data,
+		legacy_machine->video->cb_refresh(NULL,//legacy_machine->menu->frame.data,
 			legacy_machine->menu->av_info.geometry.base_width,
 			legacy_machine->menu->av_info.geometry.base_height,
-			legacy_machine->menu->framebuffer.pitch);
+			legacy_machine->menu->frame.pitch);
 	}
 #endif
 }

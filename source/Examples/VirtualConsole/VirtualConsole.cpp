@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     pVirtualMachine->m_machine = pMachine;
 
     // Initialize or quit if an error occured.
-    if (!pMachine->Initialize(CWF_S4))
+    if (!pMachine->Initialize(LMC_CWF_S4 | LMC_CWF_VSYNC))
     {
         return EXIT_FAILURE;
     }

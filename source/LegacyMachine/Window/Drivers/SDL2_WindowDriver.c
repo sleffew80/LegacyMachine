@@ -16,34 +16,11 @@
  *************************************************************************************************/
 #include <SDL.h>
 
+#include "../Common/SDL2_Common.h"
 #include "../WindowDriver.h"
+#include "../Video/VideoDriver.h"
 #include "../../MainEngine.h"
 #include "../../Logging.h"
-
-/**************************************************************************************************
- * SDL2 Window Variables
- *************************************************************************************************/
-
-/* SDL window variables */
-
-static SDL_Window*	window = NULL;
-static SDL_Thread*	thread = NULL;
-static SDL_mutex*	lock = NULL;
-static SDL_cond*	cond = NULL;
-
-/* General window variables */
-
-static char*	window_title = NULL;
-
-/**************************************************************************************************
- * SDL2 Window Structures
- *************************************************************************************************/
-
-/* Window information. */
-static WindowInfo window_info = { 0 };
-
-/* Viewport information. */
-static ViewportInfo viewport_info = { 0 };
 
 /**************************************************************************************************
  * Prototypes
@@ -51,97 +28,7 @@ static ViewportInfo viewport_info = { 0 };
 
 /* Local prototypes */
 
-static bool SDL2_InitializeWindow(void);
 static void SDL2_CloseWindow(void);
-
-/**************************************************************************************************
- * Local Window Functions
- *************************************************************************************************/
-
-/* Resize dimensions to aspect ratio. */
-static void ResizeToAspect(double aspect, int src_width, int src_height,
-	int* dst_width, int* dst_height, SDL_DisplayMode* mode)
-{
-	*dst_width = src_width;
-	*dst_height = src_height;
-
-	if (aspect <= 0)
-		aspect = (double)src_width / src_height;
-
-	if (!(window_info.flags & LMC_CWF_FULLSCREEN))
-	{
-		if ((float)src_width / src_height < 1)
-			*dst_width = *dst_height * aspect;
-		else
-			*dst_height = *dst_width / aspect;
-	}
-	else
-	{
-		*dst_width = mode->w;
-		*dst_height = *dst_width / aspect;
-		if (*dst_height > mode->h)
-		{
-			*dst_height = mode->h;
-			*dst_width = *dst_height * aspect;
-		}
-	}
-}
-
-/* Calculate windowed dimensions. */
-static void CalculateWindowedDimensions(double aspect, int width, int height, SDL_DisplayMode* mode)
-{
-	if ((window_info.override_width > 0) && (window_info.override_height > 0))
-	{
-		/* Size window according to dimension overrides */
-		window_info.width = window_info.override_width;
-		window_info.height = window_info.override_height;
-	}
-	else
-	{
-		/* Resize dimensions to aspect ratio. */
-		ResizeToAspect(aspect, width * 1, height * 1, &window_info.width, &window_info.height, mode);
-	}
-	window_info.scale_factor = (window_info.flags >> 2) & 0x07;
-	/* If a scale isn't provided, calculate an optimal one based on client screen dimensions. */
-	if (!window_info.scale_factor)
-	{
-		window_info.scale_factor = 1;
-		while (width * (window_info.scale_factor + 1) < mode->w && height * (window_info.scale_factor + 1) < mode->h && window_info.scale_factor < 3)
-			window_info.scale_factor++;
-	}
-
-	window_info.width *= window_info.scale_factor;
-	window_info.height *= window_info.scale_factor;
-
-	viewport_info.x = 0;
-	viewport_info.y = 0;
-	viewport_info.w = window_info.width;
-	viewport_info.h = window_info.height;
-}
-
-/* Calculate fullscreen dimensions. */
-static void CalculateFullscreenDimensions(double aspect, int width, int height, SDL_DisplayMode* mode)
-{
-	if ((window_info.override_width > 0) && (window_info.override_height > 0))
-	{
-		/* Resize dimensions to aspect ratio based on overrides. */
-		ResizeToAspect(window_info.override_aspect, mode->w, mode->h, &window_info.width, &window_info.height, mode);
-		if (!window_info.scale_factor)
-			window_info.scale_factor = window_info.height / window_info.height;
-	}
-	else
-	{
-		/* Resize dimensions to aspect ratio. */
-		ResizeToAspect(aspect, mode->w, mode->h, &window_info.width, &window_info.height, mode);
-		if (!window_info.scale_factor)
-			window_info.scale_factor = window_info.height / height;
-	}
-
-	viewport_info.x = (mode->w - window_info.width) >> 1;
-	viewport_info.y = (mode->h - window_info.height) >> 1;
-	viewport_info.w = window_info.width;
-	viewport_info.h = window_info.height;
-}
 
 /**************************************************************************************************
  * SDL2 Window Functions
@@ -150,22 +37,27 @@ static void CalculateFullscreenDimensions(double aspect, int width, int height, 
 /* Create a window and initialize video and input. */
 static bool SDL2_InitializeWindow(void)
 {
+	WindowInfo* window = GetWindowParameterInfo();
+	ViewportInfo* viewport = GetViewportInfo();
+	VideoInfo* video = GetVideoInfo();
+	SDL2_VideoInfo* sdl2_video = SDL2_GetVideoInfoContext();
 	SDL_DisplayMode mode;
-	SDL_Surface* surface = NULL;
+	//SDL_Surface* surface = NULL;
+	uint32_t subsystem_flags = SDL_WasInit(0);
 	int flags;
 	char quality[2] = { 0 };
-	Uint32 format = 0;
+	uint32_t format = 0;
 	void* pixels;
 	int pitch;
 
 	/* Gets desktop size and maximum window size. */
 	SDL_GetDesktopDisplayMode(0, &mode);
 
-	if (!(window_info.flags & LMC_CWF_FULLSCREEN))
+	if (!video->fullscreen)
 	{
 		flags = 0;
 
-		CalculateWindowedDimensions(legacy_machine->video->frame->aspect_ratio, legacy_machine->video->frame->base_width, legacy_machine->video->frame->base_height, &mode);
+		CalculateWindowedDimensions(video->aspect_ratio, video->frame->width, video->frame->height, mode.w, mode.h);
 	}
 	else
 	{
@@ -173,24 +65,24 @@ static bool SDL2_InitializeWindow(void)
 #if SDL_VERSION_ATLEAST(2,0,5)
 		flags |= SDL_WINDOW_ALWAYS_ON_TOP;
 #endif
-		CalculateFullscreenDimensions(legacy_machine->video->frame->aspect_ratio, legacy_machine->video->frame->base_width, legacy_machine->video->frame->base_height, &mode);
+		CalculateFullscreenDimensions(video->aspect_ratio, video->frame->width, video->frame->height, mode.w, mode.h);
 	}
 
 	/* Set video viewport dimensions. */
-	legacy_machine->video->cb_set_viewport(viewport_info.x, viewport_info.y, viewport_info.w, viewport_info.h);
+	legacy_machine->video->cb_set_viewport(viewport->x, viewport->y, viewport->w, viewport->h);
 
 	/* Create window. */
-	if (window_title == NULL)
-		window_title = strdup(legacy_machine->settings->program_name);
-	window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_info.width, window_info.height, flags);
-	if (!window)
+	if (window->title == NULL)
+		window->title = strdup(legacy_machine->settings->program_name);
+	sdl2_video->window = SDL_CreateWindow(window->title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window->width, window->height, flags);
+	if (!sdl2_video->window)
 	{
 		LMC_SetLastError(LMC_ERR_FAIL_WINDOW_INIT);
-		lmc_trace(LMC_LOG_ERRORS, "Failed to create window: %s", SDL_GetError());
+		lmc_trace(LMC_LOG_ERRORS, "[SDL2]: Failed to create window: %s", SDL_GetError());
 		SDL2_CloseWindow();
 		return false;
 	}
-	window_info.identifier = SDL_GetWindowID(window);
+	window->identifier = SDL_GetWindowID(sdl2_video->window);
 
 	/* Initialize video. */
 	if (!legacy_machine->video->cb_init())
@@ -199,7 +91,7 @@ static bool SDL2_InitializeWindow(void)
 		return false;
 	}
 
-	if (window_info.flags & LMC_CWF_FULLSCREEN)
+	if (video->fullscreen)
 		SDL_ShowCursor(SDL_DISABLE);
 
 	/* One time init, avoid being forgotten in Alt+TAB. */
@@ -213,7 +105,7 @@ static bool SDL2_InitializeWindow(void)
 	legacy_machine->window->initialized = true;
 
 	/* Window is running. */
-	window_info.running = true;
+	window->running = true;
 
 	return true;
 }
@@ -221,22 +113,29 @@ static bool SDL2_InitializeWindow(void)
 /* Destroy window delegate and free associated video and input data. */
 static void SDL2_CloseWindow(void)
 {
+	SDL2_VideoInfo* sdl2_video = SDL2_GetVideoInfoContext();
+
 	if (legacy_machine->video)
 	{
 		legacy_machine->video->cb_deinit();
 	}
 
-	if (window)
+	if (sdl2_video->window)
 	{
-		SDL_DestroyWindow(window);
-		window = NULL;
+		SDL_DestroyWindow(sdl2_video->window);
+		sdl2_video->window = NULL;
 	}
 }
 
-/* Update window dimensions to aspect. */
-static void SDL2_ResizeToAspect(const struct retro_game_geometry* geometry)
+/* Update window dimensions. */
+static void SDL2_SetWindowSize(const struct retro_game_geometry* geometry)
 {
-	if (window)
+	SDL2_VideoInfo* sdl2_video = SDL2_GetVideoInfoContext();
+	WindowInfo* window = GetWindowParameterInfo();
+	ViewportInfo* viewport = GetViewportInfo();
+	VideoInfo* video = GetVideoInfo();
+
+	if (sdl2_video->window)
 	{
 		SDL_DisplayMode mode;
 
@@ -244,43 +143,49 @@ static void SDL2_ResizeToAspect(const struct retro_game_geometry* geometry)
 		SDL_GetDesktopDisplayMode(0, &mode);
 
 		/* Calculate screen dimensions. */
-		if (!(window_info.flags & LMC_CWF_FULLSCREEN))
+		if (!video->fullscreen)
 		{
 			CalculateWindowedDimensions(geometry->aspect_ratio, 
-				geometry->base_width, geometry->base_height, &mode);
+				geometry->base_width, geometry->base_height, mode.w, mode.h);
 		}
 		else
 		{
 			CalculateFullscreenDimensions(geometry->aspect_ratio, 
-				geometry->base_width, geometry->base_height, &mode);
+				geometry->base_width, geometry->base_height, mode.w, mode.h);
 		}
 
 		/* Update viewport for video. */
-		legacy_machine->video->cb_set_viewport(viewport_info.x, 
-			viewport_info.y, viewport_info.w, viewport_info.h);
+		legacy_machine->video->cb_set_viewport(viewport->x, 
+			viewport->y, viewport->w, viewport->h);
 
 		/* Update Window size. */
-		SDL_SetWindowSize(window, window_info.width, window_info.height);
+		SDL_SetWindowSize(sdl2_video->window, window->width, window->height);
 	}
 }
 
 /* Sets window title. */
 static void SDL2_SetWindowTitle(const char* title)
 {
-	if (window != NULL)
-		SDL_SetWindowTitle(window, title);
-	if (window_title != NULL)
+	SDL2_VideoInfo* sdl2_video = SDL2_GetVideoInfoContext();
+	WindowInfo* window = GetWindowParameterInfo();
+
+	if (sdl2_video->window != NULL)
+		SDL_SetWindowTitle(sdl2_video->window, title);
+	if (window->title != NULL)
 	{
-		free(window_title);
-		window_title = NULL;
+		free(window->title);
+		window->title = NULL;
 	}
 	if (title != NULL)
-		window_title = strdup(title);
+		window->title = strdup(title);
 }
 
 /* Process window and associated video and input events. */
 static bool SDL2_ProcessEvents(void)
 {
+	WindowInfo* window = GetWindowParameterInfo();
+	VideoInfo* video = GetVideoInfo();
+	CRTFilter* filter = GetVideoFilter();
 	SDL_Event evt;
 	SDL_KeyboardEvent* keybevt;
 	SDL_JoyButtonEvent* joybuttonevt;
@@ -289,22 +194,22 @@ static bool SDL2_ProcessEvents(void)
 	int input = 0;
 	int c;
 
-	if (!window_info.running)
+	if (!window->running)
 		return false;
 
-	/* dispatch message queue */
+	/* Dispatch message queue. */
 	while (SDL_PollEvent(&evt))
 	{
 		switch (evt.type)
 		{
 		case SDL_QUIT:
-			window_info.running = false;
+			window->running = false;
 			break;
 
 		case SDL_WINDOWEVENT:
 			switch (evt.window.event) {
 			case SDL_WINDOWEVENT_CLOSE:
-				window_info.running = false;
+				window->running = false;
 				break;
 			}
 			break;
@@ -318,15 +223,16 @@ static bool SDL2_ProcessEvents(void)
 			if (legacy_machine->input->joypad->state[LMC_PLAYER1].keyboard_enabled == true)
 			{
 				if (keybevt->keysym.sym == legacy_machine->input->joypad->state[LMC_PLAYER1].key_map[LMC_INPUT_QUIT])
-					window_info.running = false;
+					window->running = false;
 				else if (keybevt->keysym.sym == legacy_machine->input->joypad->state[LMC_PLAYER1].key_map[LMC_INPUT_CRT])
 				{
-					legacy_machine->video->filter->cb_toggle_crt();
+					filter->cb_toggle_crt();
 				}
 				else if (keybevt->keysym.sym == SDLK_RETURN && keybevt->keysym.mod & KMOD_ALT)
 				{
 					SDL2_CloseWindow();
-					legacy_machine->window->params->flags ^= LMC_CWF_FULLSCREEN;
+					/* Toggle fullscreen. */
+					video->fullscreen ^= 1;
 					SDL2_InitializeWindow();
 				}
 			}
@@ -381,8 +287,8 @@ static bool SDL2_ProcessEvents(void)
 		}
 	}
 
-	/* delete */
-	if (!window_info.running)
+	/* Delete */
+	if (!window->running)
 		LMC_DeleteWindow();
 
 	return LMC_IsWindowActive();
@@ -396,9 +302,9 @@ WindowDriver sdl2_window_driver = {
 	SDL2_InitializeWindow,
 	SDL2_ProcessEvents,
 	SDL2_CloseWindow,
-	SDL2_ResizeToAspect,
+	SDL2_SetWindowSize,
 	SDL2_SetWindowTitle,
-	&window_info,
-	&viewport_info,
+	0,
+	0,
 	false
 };

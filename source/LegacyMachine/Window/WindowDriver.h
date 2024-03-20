@@ -18,37 +18,7 @@
  * Includes
  *************************************************************************************************/
 #include "LegacyMachine.h"
-
-/**************************************************************************************************
- * WindowInfo Structure
- *************************************************************************************************/
-
-typedef struct WindowInfo
-{
-	float			override_aspect;
-	int				override_width;
-	int				override_height;
-	int				width;
-	int				height;
-	int				scale_factor;
-	int				identifier;
-	int				instances;
-	int				flags;
-	volatile int	return_value;
-	bool			running;
-}
-WindowInfo;
-
-/**************************************************************************************************
- * ViewportInfo Structure
- *************************************************************************************************/
-
-typedef struct ViewportInfo
-{
-	int x, y;
-	int w, h;
-}
-ViewportInfo;
+#include "../Common/Common.h"
 
 /**************************************************************************************************
  * WindowDriver Structure
@@ -59,10 +29,10 @@ typedef struct WindowDriver
 	bool			(*cb_init)(void);
 	bool			(*cb_process)(void);
 	void			(*cb_deinit)(void);
-	void			(*cb_resize_to_aspect)(const struct retro_game_geometry*);
+	void			(*cb_resize)(const struct retro_game_geometry*);
 	void			(*cb_set_title)(const char*);
-	WindowInfo*		params;
-	ViewportInfo*	viewport;
+	WindowInfo		params;
+	ViewportInfo	viewport;
 	bool			initialized;
 }
 WindowDriver;
@@ -86,6 +56,15 @@ extern WindowDriver sdl2_window_driver;
 RETRO_BEGIN_DECLS
 
 WindowDriver* InitializeWindowDriver(void);
+WindowInfo* GetWindowParameterInfo(void);
+ViewportInfo* GetViewportInfo(void);
+
+void ResizeToAspect(double aspect, int src_width, int src_height,
+	int* dst_width, int* dst_height, int disp_width, int disp_height);
+void CalculateWindowedDimensions(double aspect, int width, int height,
+	int disp_width, int disp_height);
+void CalculateFullscreenDimensions(double aspect, int width, int height,
+	int disp_width, int disp_height);
 
 RETRO_END_DECLS
 

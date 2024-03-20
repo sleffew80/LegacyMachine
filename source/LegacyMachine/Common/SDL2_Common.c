@@ -14,45 +14,19 @@
 /**************************************************************************************************
  * Includes
  *************************************************************************************************/
-#include "InputDriver.h"
-#include "../MainEngine.h"
+#include "SDL2_Common.h"
 
 /**************************************************************************************************
- * InputDriver Context Array
+ * SDL2 Common Contexts
  *************************************************************************************************/
 
-const InputDriver* input_drivers[] = {
-#ifdef HAVE_SDL2
-	&sdl2_input_driver,
-#endif  
-	NULL
-};
+static SDL2_VideoInfo sdl2_video_info = { 0 };
 
 /**************************************************************************************************
- * InputDriver Initialization
+ * SDL2 Common Functions
  *************************************************************************************************/
 
-/* Initialize the input driver. */
-InputDriver* InitializeInputDriver(void)
+SDL2_VideoInfo* SDL2_GetVideoInfoContext(void)
 {
-	return (InputDriver*)input_drivers[0];
-}
-
-/* Get the state of a given player's joypad. */
-JoypadInputState* GetJoypadInputState(LMC_Player player)
-{
-	return &legacy_machine->input->joypad->state[player];
-}
-
-/* Marks input as pressed. */
-void SetInput(LMC_Player player, LMC_Input input)
-{
-	legacy_machine->input->joypad->state->inputs |= (1 << input);
-	legacy_machine->input->last_input = input;
-}
-
-/* Marks input as unpressed. */
-void ClearInput(LMC_Player player, LMC_Input input)
-{
-	legacy_machine->input->joypad->state->inputs &= ~(1 << input);
+	return &sdl2_video_info;
 }

@@ -15,6 +15,7 @@
  * Includes
  *************************************************************************************************/
 #include "VideoDriver.h"
+#include "../MainEngine.h"
 
 /**************************************************************************************************
  * VideoDriver Context Array
@@ -35,4 +36,28 @@ const VideoDriver* video_drivers[] = {
 VideoDriver* InitializeVideoDriver(void)
 {
 	return (VideoDriver*)video_drivers[0];
+}
+
+/* Get video info. */
+VideoInfo* GetVideoInfo(void)
+{
+	return &legacy_machine->video->info;
+}
+
+/* Get the crt video filter. */
+CRTFilter* GetVideoFilter(void)
+{
+	return &legacy_machine->video->filter;
+}
+
+/* Store video geometry locally. */
+void SetVideoGeometry(const struct retro_game_geometry* geometry)
+{
+	VideoInfo* info = GetVideoInfo();
+
+	info->aspect_ratio = geometry->aspect_ratio;
+	info->frame->width = geometry->base_width;
+	info->frame->height = geometry->base_height;
+	info->max_width = geometry->max_width;
+	info->max_height = geometry->max_height;
 }

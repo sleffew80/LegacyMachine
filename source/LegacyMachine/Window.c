@@ -47,12 +47,20 @@
  */
 bool LMC_CreateWindow(int flags)
 {
+	WindowFlags creation_flags;
 	bool ok;
 
+	creation_flags.value = flags;
+
+	legacy_machine->video->info.fullscreen = creation_flags.fullscreen;
+	legacy_machine->video->info.vsync = creation_flags.vsync;
+	legacy_machine->video->info.smooth = !creation_flags.nearest;
+	legacy_machine->window->params.factor = creation_flags.factor;
+
 	/* Allow single instance. */
-	if (legacy_machine->window->params->instances)
+	if (legacy_machine->window->params.instances)
 	{
-		legacy_machine->window->params->instances++;
+		legacy_machine->window->params.instances++;
 		return true;
 	}
 
@@ -63,15 +71,13 @@ bool LMC_CreateWindow(int flags)
 #endif
 
 	/* fill parameters for window creation and video intialization. */
-	legacy_machine->window->params->flags = flags | LMC_CWF_VSYNC;
-	legacy_machine->video->filter->enabled = 
-		(legacy_machine->window->params->flags & LMC_CWF_NEAREST) == 0;
+	legacy_machine->video->filter.enabled = (flags & LMC_CWF_NEAREST) == 0;
 
 #if defined HAVE_MENU
 	/* Initialize video for frontend menu. */
 	legacy_machine->video->cb_set_geometry_fmt(&legacy_machine->menu->av_info);
 	legacy_machine->video->cb_set_pixel_fmt(RETRO_PIXEL_FORMAT_XRGB8888);
-	legacy_machine->video->frame->pitch = legacy_machine->menu->framebuffer.pitch;
+	legacy_machine->video->info.frame->pitch = legacy_machine->menu->frame.pitch;
 
 	ok = legacy_machine->window->cb_init();
 #else
@@ -79,7 +85,7 @@ bool LMC_CreateWindow(int flags)
 #endif
 
 	if (ok)
-		legacy_machine->window->params->instances++;
+		legacy_machine->window->params.instances++;
 	return ok;
 }
 
@@ -93,10 +99,10 @@ bool LMC_CreateWindow(int flags)
 void LMC_DeleteWindow(void)
 {
 	/* Single instance, delete when 0 is reached. */
-	if (!legacy_machine->window->params->instances)
+	if (!legacy_machine->window->params.instances)
 		return;
-	legacy_machine->window->params->instances--;
-	if (legacy_machine->window->params->instances)
+	legacy_machine->window->params.instances--;
+	if (legacy_machine->window->params.instances)
 		return;
 
 	/* Close core if one is active and running. */
@@ -142,7 +148,7 @@ bool LMC_ProcessWindow(void)
  */
 bool LMC_IsWindowActive(void)
 {
-	return legacy_machine->window->params->running;
+	return legacy_machine->window->params.running;
 }
 
 /*!
@@ -171,9 +177,9 @@ void LMC_SetWindowTitle(const char* title)
  */
 void LMC_SetBaseDimensionOverrides(int width, int height)
 {
-	legacy_machine->window->params->override_width = width;
-	legacy_machine->window->params->override_height = height;
-	legacy_machine->window->params->override_aspect = (double)width / height;
+	legacy_machine->window->params.override_width = width;
+	legacy_machine->window->params.override_height = height;
+	legacy_machine->window->params.override_aspect = (double)width / height;
 }
 
 /*!
@@ -182,7 +188,7 @@ void LMC_SetBaseDimensionOverrides(int width, int height)
  */
 int LMC_GetWindowWidth(void)
 {
-	return legacy_machine->window->params->width;
+	return legacy_machine->window->params.width;
 }
 
 /*!
@@ -191,7 +197,7 @@ int LMC_GetWindowWidth(void)
  */
 int LMC_GetWindowHeight(void)
 {
-	return legacy_machine->window->params->height;
+	return legacy_machine->window->params.height;
 }
 
 /*!
@@ -220,17 +226,20 @@ void LMC_Delay(uint32_t time)
 
 void LMC_EnableRFBlur(bool mode)
 {
-	legacy_machine->video->filter->cb_enable_rf(mode);
+	CRTFilter* filter = GetVideoFilter();
+	filter->cb_enable_rf(mode);
 }
 
 void LMC_ConfigCRTEffect(LMC_CRT type, bool blur)
 {
-	legacy_machine->video->filter->cb_config_crt(type, blur);
+	CRTFilter* filter = GetVideoFilter();
+	filter->cb_config_crt(type, blur);
 }
 
 void LMC_DisableCRTEffect(void)
 {
-	legacy_machine->video->filter->cb_deinit_crt();
+	CRTFilter* filter = GetVideoFilter();
+	filter->cb_deinit_crt();
 }
 
 /**************************************************************************************************

@@ -19,25 +19,7 @@
  *************************************************************************************************/
 #include "LegacyMachine.h"
 #include "CRTFilter.h"
-
-/**************************************************************************************************
- * FrameInfo Structure
- *************************************************************************************************/
-
-typedef struct FrameInfo
-{
-	float    aspect_ratio;
-	int32_t  base_width;
-	int32_t  base_height;
-	int32_t  max_width;
-	int32_t  max_height;
-	uint32_t pitch;
-	uint32_t pixel_format;
-	uint32_t bpp;
-	uint32_t out_pitch;
-	uint32_t out_bpp;
-}
-FrameInfo;
+#include "../Common/Common.h"
 
 /**************************************************************************************************
  * VideoDriver Structure
@@ -56,8 +38,8 @@ typedef struct VideoDriver
 	uintptr_t						(*cb_get_framebuffer)(void);
 	retro_hw_get_proc_address_t		(*cb_get_hw_proc_address)(void);
 	enum retro_hw_context_type		hw_context;
-	FrameInfo*						frame;
-	CRTFilter*						filter;
+	VideoInfo						info;
+	CRTFilter						filter;
 	bool							initialized;
 }
 VideoDriver;
@@ -81,6 +63,9 @@ extern VideoDriver sdl2_video_driver;
 RETRO_BEGIN_DECLS
 
 VideoDriver* InitializeVideoDriver(void);
+VideoInfo* GetVideoInfo(void);
+CRTFilter* GetVideoFilter(void);
+void SetVideoGeometry(const struct retro_game_geometry* geometry);
 
 RETRO_END_DECLS
 

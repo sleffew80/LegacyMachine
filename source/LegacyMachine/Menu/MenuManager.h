@@ -36,7 +36,7 @@ typedef struct
 		int	   pitch;			
 		void*  data;
 	}
-	framebuffer;				/* Framebuffer for menu. */
+	frame;						/* Frame data for menu. */
 
 	retro_time_t frame_delay;	/* Menu frame delay interval. */
 	retro_time_t frame_trigger; /* Menu frame trigger to update next frame. */

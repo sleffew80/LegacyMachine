@@ -26,7 +26,7 @@ SDL_Joystick* joystick[MAX_PLAYERS];
  * SDL2 Input Structures
  *************************************************************************************************/
 
-static JoypadDriver joypad = { 0 };
+//static JoypadDriver joypad = { 0 };
 
 /**************************************************************************************************
  * Prototypes
@@ -38,16 +38,6 @@ static void SDL2_InitializeJoypad(void);
 static void SDL2_DeinitializeJoypad(LMC_Player player);
 static void SDL2_ConnectJoypad(LMC_Player player);
 static void SDL2_DisconnectJoypad(LMC_Player player);
-
-/**************************************************************************************************
- * Local Joypad Functions
- *************************************************************************************************/
-
-/* Get the state of a given player's joypad. */
-static JoypadInputState* GetJoypadInputState(LMC_Player player)
-{
-	return &legacy_machine->input->joypad->state[player];
-}
 
 /**************************************************************************************************
  * SDL Joypad Functions

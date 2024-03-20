@@ -195,8 +195,11 @@ if(HAVE_SDL2)
   set(RETRO_DEFINE_FLAGS ${RETRO_DEFINE_FLAGS} "HAVE_SDL2")
   set(RETRO_INCLUDE_DIRS ${RETRO_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS})
   set(RETRO_LIBRARY_FLAGS ${RETRO_LIBRARY_FLAGS} ${SDL2_LIBRARIES})
-  set(RETRO_HEADER_FILES ${RETRO_HEADER_FILES} "Video/Filters/SDL2_CRTFilter.h")
+  set(RETRO_HEADER_FILES ${RETRO_HEADER_FILES} "Video/Filters/SDL2_CRTFilter.h"
+		"Common/SDL2_Common.h"
+  )
   set(RETRO_SOURCE_FILES ${RETRO_SOURCE_FILES}
+		"Common/SDL2_Common.c"
 		"Window/Drivers/SDL2_WindowDriver.c"
 		"Video/Drivers/SDL2_VideoDriver.c"
 		"Audio/Drivers/SDL2_AudioDriver.c"

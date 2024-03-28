@@ -11,46 +11,50 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 * */
 
-#ifndef _AUDIO_DRIVER_H
-#define _AUDIO_DRIVER_H
+#ifndef _GL_COMMON_H_
+#define _GL_COMMON_H_
 
 /**************************************************************************************************
  * Includes
  *************************************************************************************************/
-#include "LegacyMachine.h"
+#include <retro_common_api.h>
+#include <glad/glad.h>
 
 /**************************************************************************************************
- * AudioDriver Structure
+ * OpenGL Common Types/Structures
  *************************************************************************************************/
 
-typedef struct AudioDriver
+/* Structure for storing OpenGL shader info. */
+typedef struct GL_ShaderInfo 
 {
-	bool		(*cb_init)(int);
-	size_t		(*cb_write)(const int16_t*, unsigned);
-	void		(*cb_deinit)(void);
-	bool		initialized;
+    GLuint vertex_array;
+    GLuint vertex_buffer;
+    GLuint program;
+
+    GLint i_position;
+    GLint i_coordinate;
+    GLint u_texture;
+    GLint u_mvp;
 }
-AudioDriver;
+GL_ShaderInfo;
+
+/* Structure for storing additional video info related specifically to OpenGL video rendering. */
+typedef struct GL_VideoInfo
+{
+    GL_ShaderInfo* shader;
+    GLuint texture;
+    GLuint framebuffer_id;
+    GLuint renderbuffer_id;
+}
+GL_VideoInfo;
 
 /**************************************************************************************************
- * AudioDriver Array
- *************************************************************************************************/
-
-extern const AudioDriver* audio_drivers[];
-
-/**************************************************************************************************
- * AudioDriver Contexts
- *************************************************************************************************/
-
-extern AudioDriver sdl2_audio_driver;
-
-/**************************************************************************************************
- * AudioDriver Prototypes
+ * OpenGL Common Prototypes
  *************************************************************************************************/
 
 RETRO_BEGIN_DECLS
 
-AudioDriver* InitializeAudioDriver(void);
+GL_VideoInfo* GL_GetVideoInfoContext(void);
 
 RETRO_END_DECLS
 

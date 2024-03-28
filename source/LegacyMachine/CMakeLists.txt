@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 3.23)
 #----------------------------------------------------------------------------------------------------------------------
 # Project
 #----------------------------------------------------------------------------------------------------------------------
-project("LegacyMachine" VERSION 0.0.6 LANGUAGES C)
+project("LegacyMachine" VERSION 0.0.9 LANGUAGES C)
 
 #----------------------------------------------------------------------------------------------------------------------
 # Configuration
@@ -186,6 +186,24 @@ if(NOT HAVE_STRL)
   set(RETRO_SOURCE_FILES ${RETRO_SOURCE_FILES} "${LIBRETRO_SOURCE_DIR}/compat/compat_strl.c")
 else()
   set(RETRO_DEFINE_FLAGS ${RETRO_DEFINE_FLAGS} "HAVE_STRL")
+endif()
+
+#---------------------------------------
+# Video Configuration
+#---------------------------------------
+if(HAVE_OPENGL)
+  set(RETRO_DEFINE_FLAGS ${RETRO_DEFINE_FLAGS} "HAVE_OPENGL")
+  set(RETRO_INCLUDE_DIRS ${RETRO_INCLUDE_DIRS} ${GLAD_INCLUDE_DIR})
+  #set(RETRO_LIBRARY_FLAGS ${RETRO_LIBRARY_FLAGS} ${OPENGL_LIBRARIES})
+  set(RETRO_HEADER_FILES ${RETRO_HEADER_FILES} "${GLAD_INCLUDE_DIR}/glad/glad.h"
+		"${GLAD_INCLUDE_DIR}/KHR/khrplatform.h"
+		"Common/GL_Common.h"
+		"Video/Shared/GL_Shared.h"
+  )
+  set(RETRO_SOURCE_FILES ${RETRO_SOURCE_FILES} "${GLAD_SOURCE_DIR}/glad.c"
+		"Common/GL_Common.c"
+		"Video/Shared/GL_Shared.c"
+  )
 endif()
 
 #---------------------------------------

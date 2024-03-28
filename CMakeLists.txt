@@ -33,6 +33,14 @@ if(NOT WIN32)
   endif()
 endif()
 
+# Set platform variables
+if(APPLE AND UNIX)
+  set(MACOSX ON)
+endif()
+if(UNIX AND NOT APPLE)
+  set(LINUX ON)
+endif()
+
 # Define user configurable options.
 option(BUILD_EXAMPLES "Build Example Projects." ON)
 
@@ -53,14 +61,6 @@ if(HAS_NEON_H)
   ]=]
   HAVE_NEON
   )
-endif()
-
-# Set platform variables
-if(APPLE AND UNIX)
-  set(MACOSX ON)
-endif()
-if(UNIX AND NOT APPLE)
-  set(LINUX ON)
 endif()
 
 # Find required packages.
@@ -124,6 +124,12 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 set(HAVE_MENU ON)
+
+# Set dependency source and include directories.
+if (HAVE_OPENGL)
+    set(GLAD_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/source/Dependencies/GLAD/include")
+    set(GLAD_SOURCE_DIR "${CMAKE_SOURCE_DIR}/source/Dependencies/GLAD/source")
+endif()
 
 # Set the libretro source and include directories.
 set(LIBRETRO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/source/Libretro/include")

@@ -49,7 +49,6 @@ private:
 
 	static VirtualMachine* m_pVirtualMachine;
 	LMC_Engine m_legacyMachine;
-	TLN_Engine m_tileEngine;
 	int m_currentFrame;
 
 public:

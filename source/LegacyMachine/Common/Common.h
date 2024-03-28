@@ -132,6 +132,7 @@ typedef struct FrameInfo
     unsigned height;    /* Height of frame image in pixels. */
     unsigned pitch;     /* Pitch of frame image. */
     unsigned format;    /* Pixel format of frame image. */
+    unsigned type;      /* Pixel type of frame image. */
     unsigned depth;     /* Color depth of frame image in bits per pixel. */
 }
 FrameInfo;

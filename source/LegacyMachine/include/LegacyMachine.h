@@ -16,7 +16,7 @@
 *
 * LegacyMachine uses the LibRetro API and LibRetro SDK.
 * 
-* Copyright (C) 2010-2022 The RetroArch team
+* Copyright (C) 2010-2024 The RetroArch team
 * 
 * LegacyMachine is deliberately modeled after Tilengine and several
 * functions and enumerations mirror that of Tilengine's exactly. For
@@ -24,7 +24,7 @@
 * Public License that Tilengine is released under.
 *
 * Tilengine - The 2D retro graphics engine with raster effects.
-* Copyright (C) 2015-2022 Marc Palacios Domenech <mailto:megamarc@hotmail.com>
+* Copyright (C) 2015-2024 Marc Palacios Domenech <mailto:megamarc@hotmail.com>
 * All rights reserved
 * */
 
@@ -33,14 +33,14 @@
 
 /* Legacy Machine Library API */
 #if defined _MSC_VER
-#ifdef RETRO_LIB_EXPORTS
+#if defined RETRO_LIB_EXPORTS
 #define LMCAPI __declspec(dllexport)
 #else
 #define LMCAPI __declspec(dllimport)
 #endif
 
 #else
-#ifdef RETRO_LIB_EXPORTS
+#if defined RETRO_LIB_EXPORTS
 #define LMCAPI __attribute__((visibility("default")))
 #else
 #define LMCAPI
@@ -51,14 +51,14 @@
 
 #include <retro_library.h>
 
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 #include <Tilengine.h>
 #endif
 
 /* Version */
 #define LEGACY_MACHINE_VER_MAJ	0
 #define LEGACY_MACHINE_VER_MIN	0
-#define LEGACY_MACHINE_VER_REV	8
+#define LEGACY_MACHINE_VER_REV	9
 #define LEGACY_MACHINE_HEADER_VERSION ((LEGACY_MACHINE_VER_MAJ << 16) | (LEGACY_MACHINE_VER_MIN << 8) | LEGACY_MACHINE_VER_REV)
 
 /*! Types of built-in CRT effect for \ref LMC_ConfigCRTEffect. */
@@ -223,16 +223,6 @@ LMCAPI bool LMC_LoadCore(const char* filename);
 LMCAPI bool LMC_LoadContent(const char* filename);
 LMCAPI void LMC_CloseCore(void);
 LMCAPI void LMC_UpdateFrame(int frame);
-
-/*****************************************************************************
- * Menu Management
- ****************************************************************************/
-#ifdef HAVE_MENU
-LMCAPI uint8_t* LMC_GetMenuRenderTarget(void);
-LMCAPI int LMC_GetMenuRenderTargetPitch(void);
-LMCAPI TLN_Engine LMC_GetMenuTileEngineContext(void);
-LMCAPI bool LMC_SetMenuTileEngineContext(TLN_Engine context);
-#endif
 
 /*****************************************************************************
  * Callbacks

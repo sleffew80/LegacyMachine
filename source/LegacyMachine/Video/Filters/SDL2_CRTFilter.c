@@ -31,7 +31,7 @@
 struct _SDL2_CRTHandler
 {
 	SDL_Renderer* renderer;
-	SDL_Texture* framebuffer;
+	SDL_Texture* texture;
 	SDL_Texture* overlay;
 	Size2D size_fb;
 	uint8_t glow;
@@ -51,20 +51,20 @@ static SDL_Texture* CreateTiledTexture(SDL_Renderer* renderer, int width, int he
  *************************************************************************************************/
 
 /* Create CRT effect. */
-SDL2_CRTHandler SDL2_CRTCreate(SDL_Renderer* renderer, SDL_Texture* framebuffer, CRTType type, int wnd_width, int wnd_height, bool blur)
+SDL2_CRTHandler SDL2_CRTCreate(SDL_Renderer* renderer, SDL_Texture* texture, CRTType type, int wnd_width, int wnd_height, bool blur)
 {
 	SDL2_CRTHandler crt = (SDL2_CRTHandler)calloc(1, sizeof(struct _SDL2_CRTHandler));
 	if (crt == NULL)
 		return NULL;
 
 	crt->renderer = renderer;
-	crt->framebuffer = framebuffer;
+	crt->texture = texture;
 	crt->blur = blur;
 
 	/* Get framebuffer size. */
 	Uint32 format = 0;
 	int access = 0;
-	SDL_QueryTexture(framebuffer, &format, &access, &crt->size_fb.width, &crt->size_fb.height);
+	SDL_QueryTexture(texture, &format, &access, &crt->size_fb.width, &crt->size_fb.height);
 
 	/* Build composed overlay with RGB mask + scanlines. */
 	Pattern* pattern = &patterns[type];
@@ -94,11 +94,10 @@ void SDL2_CRTDraw(SDL2_CRTHandler crt, void* pixels, int pitch, SDL_Rect* dstrec
 	/* RF blur. */
 	if (crt->blur)
 		RFBlur((uint8_t*)pixels, crt->size_fb.width, crt->size_fb.height, pitch);
-	SDL_UnlockTexture(crt->framebuffer);
 
 	/* Base image. */
-	SDL_SetTextureBlendMode(crt->framebuffer, SDL_BLENDMODE_NONE);
-	SDL_RenderCopy(crt->renderer, crt->framebuffer, NULL, dstrect);
+	SDL_SetTextureBlendMode(crt->texture, SDL_BLENDMODE_NONE);
+	SDL_RenderCopy(crt->renderer, crt->texture, NULL, dstrect);
 
 	/* RGB + scanline overlay. */
 	SDL_RenderCopy(crt->renderer, crt->overlay, NULL, dstrect);
@@ -106,16 +105,16 @@ void SDL2_CRTDraw(SDL2_CRTHandler crt, void* pixels, int pitch, SDL_Rect* dstrec
 	/* Glow overlay. */
 	if (crt->glow != 0)
 	{
-		SDL_SetTextureBlendMode(crt->framebuffer, SDL_BLENDMODE_ADD);
-		SDL_SetTextureColorMod(crt->framebuffer, crt->glow, crt->glow, crt->glow);
-		SDL_RenderCopy(crt->renderer, crt->framebuffer, NULL, dstrect);
+		SDL_SetTextureBlendMode(crt->texture, SDL_BLENDMODE_ADD);
+		SDL_SetTextureColorMod(crt->texture, crt->glow, crt->glow, crt->glow);
+		SDL_RenderCopy(crt->renderer, crt->texture, NULL, dstrect);
 	}
 }
 
-void SDL2_CRTSetRenderTarget(SDL2_CRTHandler crt, SDL_Texture* framebuffer)
+void SDL2_CRTSetRenderTarget(SDL2_CRTHandler crt, SDL_Texture* texture)
 {
-	if (crt != NULL && framebuffer != NULL)
-		crt->framebuffer = framebuffer;
+	if (crt != NULL && texture != NULL)
+		crt->texture = texture;
 }
 
 void SDL2_CRTIncreaseGlow(SDL2_CRTHandler crt)

@@ -47,6 +47,8 @@
 
 #define LoadRetroSymbol(S) LoadSymbol(legacy_machine->system->current_core->S, S)
 
+void empty_function(void);
+
 /**************************************************************************************************
  * LegacyMachine Initialization/Deinitialization
  *************************************************************************************************/
@@ -152,6 +154,10 @@ LMC_Engine LMC_Init(void)
 		LMC_SetLastError(LMC_ERR_NULL_POINTER);
 		return NULL;
 	}
+	else
+	{
+		context->video->info.frame = calloc(sizeof(FrameInfo), 1);
+	}
 	/* Initialize audio driver. */
 	context->audio = InitializeAudioDriver();
 	if (!context->audio)
@@ -168,7 +174,7 @@ LMC_Engine LMC_Init(void)
 		LMC_SetLastError(LMC_ERR_NULL_POINTER);
 		return NULL;
 	}
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 	/* Initialize menu manager. */
 	context->menu = GetMenuManagerContext();
 	if (!context->menu)
@@ -266,6 +272,12 @@ LMC_Engine LMC_Init(void)
 		LMC_SetLastError(LMC_ERR_NULL_POINTER);
 		return NULL;
 	}
+	else
+	{
+		/* Pre-initialize hardware render callback. */
+		context->system->cb_hw_render.context_reset = empty_function;
+		context->system->cb_hw_render.context_destroy = empty_function;
+	}
 	context->system->current_core = (CoreLibrary*)calloc(sizeof(CoreLibrary), 1);
 	if (!context->system->current_core)
 	{
@@ -276,10 +288,6 @@ LMC_Engine LMC_Init(void)
 
 	/* Set internal program name (required for environment initialization). */
 	strlcpy(context->settings->program_name, program_name, NAME_MAX_LENGTH);
-
-	/* Set as default context if it's the first one. */
-	if (legacy_machine == NULL)
-		legacy_machine = context;
 
 	/* Get environment and initialize platform dependent code. */
 	context->platform->cb_get_env();
@@ -298,17 +306,18 @@ LMC_Engine LMC_Init(void)
 	if (!path_is_directory(context->settings->state_directory))
 		path_mkdir(context->settings->state_directory);
 
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 	/* Additional Tilengine initialization. */
 	TLN_SetTargetFps((int)fps);
 	TLN_SetLoadPath(context->settings->asset_directory);
 	TLN_SetRenderTarget(context->menu->frame.data, context->menu->frame.pitch);
 #endif
 
-	VideoInfo* video_info = GetVideoInfo();
-	video_info->frame = calloc(sizeof(FrameInfo), 1);
+	/* Set as default context if it's the first one. */
+	if (legacy_machine == NULL)
+		legacy_machine = context;
 
-#ifdef _DEBUG
+#if defined _DEBUG
 	LMC_SetLogLevel(LMC_LOG_ERRORS);
 #endif
 
@@ -400,7 +409,7 @@ bool LMC_DeleteContext(LMC_Engine context)
 	/* Free "engine" members. */
 	if (context->system->current_core)
 		free(context->system->current_core);
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 	if (context->menu->tile_engine)
 		TLN_Deinit();
 	if (context->menu->frame.data)
@@ -443,120 +452,6 @@ uint32_t LMC_GetVersion(void)
 	LMC_SetLastError(LMC_ERR_OK);
 	return LEGACY_MACHINE_HEADER_VERSION;
 }
-
-/**************************************************************************************************
- * LegacyMachine Menu Accessor Functions
- *************************************************************************************************/
-
-#ifdef HAVE_MENU
-
-/*!
- * \brief
- * Gets the location of the frontend menu's render target.
- *
- * \returns
- * Pointer to frontend menu's render target.
- * 
- */
-uint8_t* LMC_GetMenuRenderTarget(void)
-{
-	LMC_SetLastError(LMC_ERR_OK);
-	return legacy_machine->menu->frame.data;
-}
-
-/*!
- * \brief
- * Gets the pitch (bytes per scanline) of the frontend menu's render target.
- *
- * \returns
- * Frontend menu's pitch.
- * 
- */
-int LMC_GetMenuRenderTargetPitch(void)
-{
-	LMC_SetLastError(LMC_ERR_OK);
-	return legacy_machine->menu->frame.pitch;
-}
-
-/*!
- * \brief
- * Gets the Tilengine context associated with the frontend menu.
- *
- * \returns
- * Frontend menu's TLN_Engine context.
- * 
- */
-TLN_Engine LMC_GetMenuTileEngineContext(void)
-{
-	LMC_SetLastError(LMC_ERR_OK);
-	return legacy_machine->menu->tile_engine;
-}
-
-/*!
- * \brief
- * Sets the Tilengine context associated with the frontend menu.
- *
- * \remarks
- * LMC_Deinit will only delete the active Tilengine context. Any additional contexts
- * created should be delted with TLN_DeleteContext.
- * 
- */
-bool LMC_SetMenuTileEngineContext(TLN_Engine context)
-{
-	if (TLN_SetContext(context))
-	{
-		LMC_SetLastError(LMC_ERR_OK);
-
-		// Verify dimensions.
-		if (TLN_GetWidth() > legacy_machine->menu->av_info.geometry.max_width)
-		{
-			lmc_trace(LMC_LOG_ERRORS,
-				"base_width parameter must be less than or equal to max_width");
-			LMC_SetLastError(LMC_ERR_INV_PARAM);
-			return false;
-		}
-		if (TLN_GetWidth() < 8)
-		{
-			lmc_trace(LMC_LOG_ERRORS,
-				"base_width parameter must be greater than or equal to 8");
-			LMC_SetLastError(LMC_ERR_INV_PARAM);
-			return false;
-		}
-		if (TLN_GetHeight() > legacy_machine->menu->av_info.geometry.max_height)
-		{
-			lmc_trace(LMC_LOG_ERRORS,
-				"base_height parameter must be less than or equal to max_height");
-			LMC_SetLastError(LMC_ERR_INV_PARAM);
-			return false;
-		}
-		if (TLN_GetHeight() < 8)
-		{
-			lmc_trace(LMC_LOG_ERRORS,
-				"base_height parameter must be greater than or equal to 8");
-			LMC_SetLastError(LMC_ERR_INV_PARAM);
-			return false;
-		}
-
-		// Update pointer to Tilengine context.
-		legacy_machine->menu->tile_engine = TLN_GetContext();
-
-		// Update screen geometry to match new Tilengine's context.
-		legacy_machine->menu->av_info.geometry.base_width = TLN_GetWidth();
-		legacy_machine->menu->av_info.geometry.base_height = TLN_GetHeight();
-
-		// Syncronize Tilengine's fps with LegacyMachine's menu fps.
-		TLN_SetTargetFps((int)legacy_machine->menu->av_info.timing.fps);
-
-		return true;
-	}
-	else
-	{
-		LMC_SetLastError(LMC_ERR_TILENGINE);
-		return false;
-	}
-}
-
-#endif
 
 /**************************************************************************************************
  * LegacyMachine Callbacks
@@ -624,7 +519,7 @@ static retro_time_t GetTimeElapsed(void)
 	return cpu_features_get_time_usec();
 }
 
-/* Gets CPU Features.  */
+/* Gets CPU Features. */
 static uint64_t GetCPUFeatures(void)
 {
 	return cpu_features_get();
@@ -768,6 +663,9 @@ static bool CoreEnvironment(unsigned cmd, void* data)
 	case RETRO_ENVIRONMENT_SET_HW_RENDER:
 	{
 		struct retro_hw_render_callback* hardware_render_callback = (struct retro_hw_render_callback*)data;
+		hardware_render_callback->context_type = legacy_machine->video->hw_context;
+		hardware_render_callback->version_major = legacy_machine->video->hw_api.version_major;
+		hardware_render_callback->version_minor = legacy_machine->video->hw_api.version_minor;
 		hardware_render_callback->get_current_framebuffer = legacy_machine->video->cb_get_framebuffer;
 		if (legacy_machine->video->cb_get_hw_proc_address)
 			hardware_render_callback->get_proc_address = legacy_machine->video->cb_get_hw_proc_address;
@@ -1389,6 +1287,13 @@ void LMC_CloseCore(void)
 		dylib_close(legacy_machine->system->current_core->handle);
 
 	memset(legacy_machine->system->current_core, 0, sizeof(*legacy_machine->system->current_core));
+
+	/* Reset hardware render variables and callbacks. */
+	legacy_machine->system->cb_hw_render.depth = false;
+	legacy_machine->system->cb_hw_render.stencil = false;
+	legacy_machine->system->cb_hw_render.bottom_left_origin = false;
+	legacy_machine->system->cb_hw_render.context_reset = empty_function;
+	legacy_machine->system->cb_hw_render.context_destroy = empty_function;
 }
 
 /*!
@@ -1428,7 +1333,7 @@ void LMC_UpdateFrame(int frame)
 		/* Run a single loop. */
 		legacy_machine->system->current_core->retro_run();
 	}
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 	else
 	{
 		legacy_machine->video->cb_set_pixel_fmt(RETRO_PIXEL_FORMAT_XRGB8888);
@@ -1443,7 +1348,7 @@ void LMC_UpdateFrame(int frame)
 		}
 
 		/* Draw a single frame from the frontend. */
-		legacy_machine->video->cb_refresh(NULL,//legacy_machine->menu->frame.data,
+		legacy_machine->video->cb_refresh(legacy_machine->menu->frame.data,
 			legacy_machine->menu->av_info.geometry.base_width,
 			legacy_machine->menu->av_info.geometry.base_height,
 			legacy_machine->menu->frame.pitch);
@@ -1577,3 +1482,6 @@ void lmc_core_log(enum retro_log_level level, const char* format, ...)
 			LMC_SetLastError(LMC_ERR_LIBRETRO);
 	}
 }
+
+void empty_function(void)
+{}

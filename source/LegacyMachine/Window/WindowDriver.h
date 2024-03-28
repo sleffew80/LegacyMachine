@@ -48,6 +48,7 @@ extern const WindowDriver* window_drivers[];
  *************************************************************************************************/
 
 extern WindowDriver sdl2_window_driver;
+extern WindowDriver sdl2_gl_window_driver;
 
 /**************************************************************************************************
  * WindowDriver Prototypes

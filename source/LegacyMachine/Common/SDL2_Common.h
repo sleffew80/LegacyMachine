@@ -29,8 +29,11 @@
 typedef struct SDL2_VideoInfo
 {
     SDL_Window*     window;
+#if defined HAVE_OPENGL
+    SDL_GLContext   context;
+#endif
     SDL_Renderer*   renderer;
-    SDL_Texture*    framebuffer;
+    SDL_Texture*    texture;
     SDL_Rect        viewport;
     SDL2_CRTHandler crt;
 }

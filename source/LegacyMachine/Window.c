@@ -14,7 +14,7 @@
 /**************************************************************************************************
  * Includes
  *************************************************************************************************/
-#ifdef HAVE_SDL2
+#if defined HAVE_SDL2
 #include <SDL.h>
 #endif
 
@@ -64,13 +64,7 @@ bool LMC_CreateWindow(int flags)
 		return true;
 	}
 
-#ifdef HAVE_SDL2
-	/* Initialize required SDL sub-systems. */
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
-		return false;
-#endif
-
-	/* fill parameters for window creation and video intialization. */
+	/* Fill parameters for window creation and video intialization. */
 	legacy_machine->video->filter.enabled = (flags & LMC_CWF_NEAREST) == 0;
 
 #if defined HAVE_MENU
@@ -112,7 +106,7 @@ void LMC_DeleteWindow(void)
 	/* Close the window. */
 	legacy_machine->window->cb_deinit();
 
-#ifdef HAVE_SDL2
+#if defined HAVE_SDL2
 	/* Quit SDL. */
 	SDL_Quit();
 #endif

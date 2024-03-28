@@ -22,7 +22,7 @@
  *************************************************************************************************/
 
 const InputDriver* input_drivers[] = {
-#ifdef HAVE_SDL2
+#if defined HAVE_SDL2
 	&sdl2_input_driver,
 #endif  
 	NULL

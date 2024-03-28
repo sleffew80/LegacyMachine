@@ -25,11 +25,11 @@
 
 typedef struct
 {
-	TLN_Engine tile_engine;
+	TLN_Engine	tile_engine;
 
-	void (*cb_update)(int);		/* Menu update callback. */
+	void		(*cb_update)(int);					/* Menu update callback. */
 
-	struct retro_system_av_info av_info; /* Menu audio/video information. */
+	struct retro_system_av_info		av_info;		/* Menu audio/video information. */
 
 	struct
 	{

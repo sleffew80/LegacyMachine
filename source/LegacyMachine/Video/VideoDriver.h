@@ -38,6 +38,12 @@ typedef struct VideoDriver
 	uintptr_t						(*cb_get_framebuffer)(void);
 	retro_hw_get_proc_address_t		(*cb_get_hw_proc_address)(void);
 	enum retro_hw_context_type		hw_context;
+	struct
+	{
+		unsigned version_major;
+		unsigned version_minor;
+	}
+	hw_api;
 	VideoInfo						info;
 	CRTFilter						filter;
 	bool							initialized;
@@ -55,6 +61,7 @@ extern const VideoDriver* video_drivers[];
  *************************************************************************************************/
 
 extern VideoDriver sdl2_video_driver;
+extern VideoDriver sdl2_gl_video_driver;
 
 /**************************************************************************************************
  * VideoDriver Prototypes
@@ -66,6 +73,9 @@ VideoDriver* InitializeVideoDriver(void);
 VideoInfo* GetVideoInfo(void);
 CRTFilter* GetVideoFilter(void);
 void SetVideoGeometry(const struct retro_game_geometry* geometry);
+void InitializeHardwareRenderCallback(void);
+const char* GetHardwareContextTypeString(enum retro_hw_context_type);
+void Orthographic2D(float matrix[4][4], float left, float right, float bottom, float top);
 
 RETRO_END_DECLS
 

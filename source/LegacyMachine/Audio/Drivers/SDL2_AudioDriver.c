@@ -31,9 +31,30 @@ static SDL_AudioDeviceID  audio_device_id = 0;
  *************************************************************************************************/
 
 /* Initialize audio device. */
-static void SDL2_InitializeAudio(int frequency) {
+static bool SDL2_InitializeAudio(int frequency) {
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
+	uint32_t subsystem_flags = SDL_WasInit(0);
+
+	/* Initialize audio subsystem, if necessary. */
+	if (subsystem_flags == 0)
+	{
+		if (SDL_Init(SDL_INIT_AUDIO) < 0)
+		{
+			lmc_trace(LMC_LOG_ERRORS, "[SDL2]: Failed to initialize audio subsystem: %s", SDL_GetError());
+			LMC_SetLastError(LMC_ERR_FAIL_AUDIO_INIT);
+			return false;
+		}
+	}
+	else if ((subsystem_flags & SDL_INIT_AUDIO) == 0)
+	{
+		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+		{
+			lmc_trace(LMC_LOG_ERRORS, "[SDL2]: Failed to initialize audio subsystem: %s", SDL_GetError());
+			LMC_SetLastError(LMC_ERR_FAIL_AUDIO_INIT);
+			return false;
+		}
+	}
 
 	SDL_zero(desired);
 	SDL_zero(obtained);
@@ -48,8 +69,9 @@ static void SDL2_InitializeAudio(int frequency) {
 	audio_device_id = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
 	if (!audio_device_id)
 	{
-		lmc_trace(LMC_LOG_ERRORS, "Failed to open playback device: %s", SDL_GetError());
+		lmc_trace(LMC_LOG_ERRORS, "[SDL2]: Failed to open playback device: %s", SDL_GetError());
 		LMC_SetLastError(LMC_ERR_FAIL_AUDIO_INIT);
+		return false;
 	}
 
 	/* Pause audio device until it is requested. */
@@ -61,6 +83,8 @@ static void SDL2_InitializeAudio(int frequency) {
 	}
 
 	legacy_machine->audio->initialized = true;
+
+	return true;
 }
 
 /* Close audio device. */

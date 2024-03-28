@@ -21,7 +21,7 @@
  *************************************************************************************************/
 
 const AudioDriver* audio_drivers[] = {
-#ifdef HAVE_SDL2
+#if defined HAVE_SDL2
 	&sdl2_audio_driver,
 #endif  
 	NULL

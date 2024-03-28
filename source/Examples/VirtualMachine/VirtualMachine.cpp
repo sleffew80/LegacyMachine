@@ -40,7 +40,7 @@ VirtualMachine::VirtualMachine(void)
 {
     m_machine = NULL;
     m_legacyMachine = NULL;
-    m_tileEngine = NULL;
+    //m_tileEngine = NULL;
     m_currentFrame = 0;
 }
 
@@ -83,7 +83,6 @@ bool VirtualMachine::Initialize(char* appName, char* appTitle,
     m_legacyMachine = LMC_Init(appName, baseWidth, baseHeight, maxWidth, maxHeight, aspect, fps, maxLayers, maxSprites, maxAnims);
     if (!m_legacyMachine)
         return false;
-    m_tileEngine = LMC_GetMenuTileEngineContext();
 
 #ifdef _DEBUG
     LMC_SetLogLevel(LMC_LOG_VERBOSE);

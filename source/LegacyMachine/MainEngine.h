@@ -24,7 +24,7 @@
 #include "Video/VideoDriver.h"
 #include "Audio/AudioDriver.h"
 #include "Input/InputDriver.h"
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 #include "Menu/MenuManager.h"
 #endif
 #include "SystemManager.h"
@@ -41,7 +41,7 @@ typedef struct MainEngine
 
 	SettingsManager*		settings;	/* Pointer to settings manager. */
 	PlatformDriver*			platform;	/* Pointer to platform driver. */
-#ifdef HAVE_MENU
+#if defined HAVE_MENU
 	MenuManager*			menu;		/* Pointer to frontend menu manager. */
 #endif
 	SystemManager*			system;		/* Pointer to libretro system manager. */	

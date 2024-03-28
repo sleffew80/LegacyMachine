@@ -22,7 +22,10 @@
  *************************************************************************************************/
 
 const WindowDriver* window_drivers[] = {
-#ifdef HAVE_SDL2
+#if defined(HAVE_SDL2) && defined(HAVE_OPENGL)
+	&sdl2_gl_window_driver,
+#endif
+#if defined HAVE_SDL2
 	&sdl2_window_driver,
 #endif  
 	NULL

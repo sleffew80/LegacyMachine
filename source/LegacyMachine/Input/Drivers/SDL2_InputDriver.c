@@ -44,21 +44,30 @@ static void SDL2_DisconnectJoypad(LMC_Player player);
  *************************************************************************************************/
 
 /* Joypad initialization. */
-static void SDL2_InitializeJoypad(void)
+static bool SDL2_InitializeJoypad(void)
 {
 	unsigned num_joysticks = 0;
-	uint32_t flags = SDL_WasInit(0);
+	uint32_t subsystem_flags = SDL_WasInit(0);
 	unsigned i;
 
-	if (flags == 0)
+	/* Initialize input subsystem, if necessary. */
+	if (subsystem_flags == 0)
 	{
 		if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
-			return;
+		{
+			lmc_trace(LMC_LOG_ERRORS, "[SDL2]: Failed to initialize input subsystem: %s", SDL_GetError());
+			LMC_SetLastError(LMC_ERR_FAIL_INPUT_INIT);
+			return false;
+		}
 	}
-	else if ((flags & SDL_INIT_JOYSTICK) == 0)
+	else if ((subsystem_flags & SDL_INIT_JOYSTICK) == 0)
 	{
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0)
-			return;
+		{
+			lmc_trace(LMC_LOG_ERRORS, "[SDL2]: Failed to initialize input subsystem: %s", SDL_GetError());
+			LMC_SetLastError(LMC_ERR_FAIL_INPUT_INIT);
+			return false;
+		}
 	}
 
 	num_joysticks = SDL_NumJoysticks();
@@ -69,6 +78,8 @@ static void SDL2_InitializeJoypad(void)
 		SDL2_ConnectJoypad(i);
 
 	SDL_JoystickEventState(SDL_ENABLE);
+
+	return true;
 }
 
 /* Joypad deinitialization. */

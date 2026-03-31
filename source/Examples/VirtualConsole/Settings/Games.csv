@@ -1,0 +1,50 @@
+Display Name,Core File,Content File,Players
+# This is a sample CSV file for configuring games in the LegacyMachine virtual console example. 
+# Each line represents a game with its associated core file, content file, and the number of 
+# players supported. File names with spaces or commas should be in quotes. Only lines where the 
+# extension of the libretro core matches the extension used by the platform will be loaded. For 
+# example, on Windows, only lines with "[core]_libretro.dll" will be loaded, on Mac only lines 
+# with "[core]_libretro.dylib" will be loaded, and on Linux only lines with "[core]_libretro.so" 
+# will be loaded.
+# Windows List:
+GAME 01,_libretro.dll,"Video Game 1, [U].rom",1
+GAME 02,_libretro.dll,"Video Game 2 [U].rom",1
+GAME 03,_libretro.dll,"Video Game 3 [U].rom",1
+GAME 04,_libretro.dll,"Video Game 4 [U].rom",1
+GAME 05,_libretro.dll,"Video Game 5 [U].rom",1
+GAME 06,_libretro.dll,"Video Game 6 [U].rom",1
+GAME 07,_libretro.dll,"Video Game 7 [U].rom",1
+GAME 08,_libretro.dll,"Video Game 8 [U].rom",1
+GAME 09,_libretro.dll,"Video Game 9 [U].rom",1
+GAME 10,_libretro.dll,"Video Game 10 [U].rom",1
+GAME 11,_libretro.dll,"Video Game 11 [U].rom",1
+GAME 12,_libretro.dll,"Video Game 12 [U].rom",1
+GAME 13,_libretro.dll,"Video Game 13 [U].rom",1
+# Mac List:
+GAME 01,_libretro.dylib,"Video Game 1 [U].rom",1
+GAME 02,_libretro.dylib,"Video Game 2 [U].rom",1
+GAME 03,_libretro.dylib,"Video Game 3 [U].rom",1
+GAME 04,_libretro.dylib,"Video Game 4 [U].rom",1
+GAME 05,_libretro.dylib,"Video Game 5 [U].rom",1
+GAME 06,_libretro.dylib,"Video Game 6 [U].rom",1
+GAME 07,_libretro.dylib,"Video Game 7 [U].rom",1
+GAME 08,_libretro.dylib,"Video Game 8 [U].rom",1
+GAME 09,_libretro.dylib,"Video Game 9 [U].rom",1
+GAME 10,_libretro.dylib,"Video Game 10 [U].rom",1
+GAME 11,_libretro.dylib,"Video Game 11 [U].rom",1
+GAME 12,_libretro.dylib,"Video Game 12 [U].rom",1
+GAME 13,_libretro.dylib,"Video Game 13 [U].rom",1
+# Linux List:
+GAME 01,_libretro.so,"Video Game 1 [U].rom",1
+GAME 02,_libretro.so,"Video Game 2 [U].rom",1
+GAME 03,_libretro.so,"Video Game 3 [U].rom",1
+GAME 04,_libretro.so,"Video Game 4 [U].rom",1
+GAME 05,_libretro.so,"Video Game 5 [U].rom",1
+GAME 06,_libretro.so,"Video Game 6 [U].rom",1
+GAME 07,_libretro.so,"Video Game 7 [U].rom",1
+GAME 08,_libretro.so,"Video Game 8 [U].rom",1
+GAME 09,_libretro.so,"Video Game 9 [U].rom",1
+GAME 10,_libretro.so,"Video Game 10 [U].rom",1
+GAME 11,_libretro.so,"Video Game 11 [U].rom",1
+GAME 12,_libretro.so,"Video Game 12 [U].rom",1
+GAME 13,_libretro.so,"Video Game 13 [U].rom",1

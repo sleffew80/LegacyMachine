@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "zlib",
+    "libpng",
+    "sdl2"
+  ]
+}
